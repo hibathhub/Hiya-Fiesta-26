@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HIYA FIESTA '26 | BEYOND EVERY HORIZON</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 100%);
+    --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+    --ink: #0f172a;
+    --muted: #64748b;
+    --bg: #f1f5f9;
+    --line: #e2e8f0;
+    --accent: #6366f1;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+    background-attachment: fixed;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  button, input, select { font: inherit; }
+  button { cursor: pointer; border: 0; }
+
+  /* Header & Navigation */
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  }
+
+  .nav {
+    max-width: 1100px;
+    margin: auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .brand {
+    font-weight: 900;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .brand small {
+    display: block;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2.5px;
+    font-weight: 700;
+    -webkit-text-fill-color: initial;
+  }
+
+  .navlinks {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .navlinks::-webkit-scrollbar { display: none; }
+
+  .navlinks button {
+    background: transparent;
+    padding: 8px 14px;
+    border-radius: 12px;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted);
+    transition: all 0.2s ease;
+  }
+
+  .navlinks button:hover {
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--accent);
+  }
+
+  .navlinks button.active {
+    background: var(--accent-gradient);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+
+  main {
+    max-width: 1100px;
+    margin: auto;
+    padding: 24px 20px 80px;
+  }
+
+  /* Hero Banner */
+  .hero {
+    background: var(--primary-gradient);
+    color: #fff;
+    border-radius: 28px;
+    padding: 36px 28px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.3);
+  }
+
+  .hero h1 {
+    font-size: clamp(32px, 6vw, 54px);
+    font-weight: 900;
+    line-height: 1.05;
+    margin: 12px 0 8px;
+    letter-spacing: -1px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-weight: 800;
+    color: #a855f7;
+    text-transform: uppercase;
+  }
+
+  /* Cards & Forms */
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  .card {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--glass-shadow);
+  }
+
+  .section-title {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin: 28px 4px 14px;
+  }
+
+  .section-title h2 { margin: 0; font-size: 1.4rem; font-weight: 800; }
+
+  .panel {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  .formgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+  .formgrid input, .formgrid select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f8fafc;
+  }
+
+  .primary {
+    background: var(--accent-gradient);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  }
+
+  .big-number {
+    font-size: 2.8rem;
+    font-weight: 900;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+    margin: 6px 0;
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    background: #e0e7ff;
+    color: #4338ca;
+  }
+
+  @media (max-width: 768px) {
+    .grid, .grid3, .formgrid { grid-template-columns: 1fr; }
+    .nav { flex-direction: column; align-items: flex-start; }
+  }
+  </style>
+</head>
+<body>
+
+  <div class="top">
+    <div class="nav">
+      <div class="brand">
+        HIYA FIESTA '26
+        <small>BEYOND EVERY HORIZON</small>
+      </div>
+      <div class="navlinks" id="navlinks"></div>
+    </div>
+  </div>
+
+  <main id="app"></main>
+
+  <script>
+    // Supabase Initialization
+    const SUPABASE_URL = "https://rkexjkapqadlnvwxvgvt.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrZXhqa2FwcWFkbG52d3h2Z3Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDc5NjQsImV4cCI6MjEwMjcyMzk2NH0.x_dug-LaX0THM369QNC7LJ2NALiCFogib6ULAaMXV5A";
+    
+    let supabaseClient = null;
+    if (window.supabase && SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE") {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
+    let currentPage = "Home";
+    const pages = ["Home", "Programs", "Scoreboard", "Results", "Announcements", "My Fiesta", "Admin"];
+
+    function renderNav() {
+      const container = document.getElementById("navlinks");
+      container.innerHTML = pages.map(p => 
+        `<button class="${currentPage === p ? 'active' : ''}" onclick="navigate('${p}')">${p}</button>`
+      ).join('');
+    }
+
+    function navigate(page) {
+      currentPage = page;
+      renderNav();
+      renderPage();
+    }
+
+    async function renderPage() {
+      const app = document.getElementById("app");
+      
+           if (currentPage === "Home") {
+        app.innerHTML = `
+          <div class="hero">
+            <div class="eyebrow">Arts Festival 2026</div>
+            <h1>BEYOND EVERY HORIZON</h1>
+            <p>Welcome to HIYA FIESTA '26. Experience live scores, schedules, and official announcements in real time.</p>
+          </div>
+          <div class="grid3">
+            <button class="card" onclick="navigate('Scoreboard')">
+              <h3>Live Scoreboard</h3>
+              <p>Track team points instantly across DIJLA, FURATH, and NAIL.</p>
+            </button>
+            <button class="card" onclick="navigate('Programs')">
+              <h3>Event Schedules</h3>
+              <p>Find timings and stage venues for all single and group items.</p>
+            </button>
+            <button class="card" onclick="navigate('My Fiesta')">
+              <h3>My Fiesta</h3>
+              <p>Check individual student registration by chest number.</p>
+            </button>
+          </div>
+        `;
+      } 
+      else if (currentPage === "Programs") {
+        app.innerHTML = `<div class="section-title"><h2>Programs & Schedule</h2></div><div id="prog-list">Loading...</div>`;
+        loadPrograms();
+      } 
+      else if (currentPage === "Scoreboard") {
+        app.innerHTML = `<div class="section-title"><h2>Live Team Standings</h2></div><div id="score-list" class="grid3">Loading...</div>`;
+        loadScoreboard();
+      } 
+      else if (currentPage === "Results") {
+        app.innerHTML = `<div class="section-title"><h2>Published Results</h2></div><div id="results-list">Loading...</div>`;
+        loadResults();
+      } 
+      else if (currentPage === "Announcements") {
+        app.innerHTML = `<div class="section-title"><h2>Official Announcements</h2></div><div id="anno-list">Loading...</div>`;
+        loadAnnouncements();
+      } 
+      else if (currentPage === "My Fiesta") {
+        app.innerHTML = `
+          <div class="section-title"><h2>My Fiesta Lookup</h2></div>
+          <div class="panel">
+            <h3>Search Student Schedule</h3>
+            <div class="formgrid">
+              <input id="cn-input" placeholder="Enter Chest Number (e.g. 102)">
+              <button class="primary" onclick="searchStudent()">Search Student</button>
+            </div>
+          </div>
+          <div id="student-res"></div>
+        `;
+      } 
+      else if (currentPage === "Admin") {
+        app.innerHTML = renderAdmin();
+      }
+    }
+
+    // --- FETCH DATA FUNCTIONS ---
+    async function loadPrograms() {
+      if (!supabaseClient) return;
+      const { data } = await supabaseClient.from('programmes').select('*');
+      const container = document.getElementById("prog-list");
+      if (!data || data.length === 0) { container.innerHTML = `<div class="panel">No programmes scheduled yet.</div>`; return; }
+      container.innerHTML = data.map(p => `
+        <div class="panel">
+          <h3>${p.name} <span class="pill">${p.category || 'General'}</span></h3>
+          <p class="muted"><strong>Stage:</strong> ${p.stage || 'TBA'} | <strong>Venue:</strong> ${p.venue || 'TBA'} | <strong>Time:</strong> ${p.date || 'TBA'}</p>
+        </div>
+      `).join('');
+    }
+
+    async function loadScoreboard() {
+      if (!supabaseClient) return;
+      const { data } = await supabaseClient.from('results').select('*');
+      const teams = { DIJLA: 0, FURATH: 0, NAIL: 0 };
+      if (data) {
+        data.forEach(r => {
+          if (teams[r.group] !== undefined) teams[r.group] += Number(r.points) || 0;
+        });
+      }
+      document.getElementById("score-list").innerHTML = Object.keys(teams).map(t => `
+        <div class="card">
+          <div class="eyebrow">${t}</div>
+          <div class="big-number">${teams[t]}</div>
+          <p class="muted">Total Points Accumulated</p>
+        </div>
+      `).join('');
+    }
+
+    async function loadResults() {
+      if (!supabaseClient) return;
+      const { data } = await supabaseClient.from('results').select('*');
+      const container = document.getElementById("results-list");
+      if (!data || data.length === 0) { container.innerHTML = `<div class="panel">No results published yet.</div>`; return; }
+      container.innerHTML = data.map(r => `
+        <div class="panel">
+          <h3>${r.program}</h3>
+          <p><strong>Winner:</strong> ${r.winner} (${r.group})</p>
+          <p class="muted">Grade: ${r.grade} | Points: ${r.points}</p>
+        </div>
+      `).join('');
+    }
+
+    async function loadAnnouncements() {
+      if (!supabaseClient) return;
+      const { data } = await supabaseClient.from('announcements').select('*');
+      const container = document.getElementById("anno-list");
+      if (!data || data.length === 0) { container.innerHTML = `<div class="panel">No announcements posted yet.</div>`; return; }
+      container.innerHTML = data.map(a => `
+        <div class="panel">
+          <h3>${a.title}</h3>
+          <p>${a.body}</p>
+        </div>
+      `).join('');
+    }
+
+    async function searchStudent() {
+      const code = document.getElementById("cn-input").value.trim();
+      if (!code || !supabaseClient) return;
+      const { data } = await supabaseClient.from('students').select('*').eq('code', code);
+      const container = document.getElementById("student-res");
+      if (!data || data.length === 0) {
+        container.innerHTML = `<div class="panel"><p>No student found with Chest Number ${code}.</p></div>`;
+        return;
+      }
+      const s = data[0];
+      container.innerHTML = `
+        <div class="panel">
+          <h3>${s.name} (Chest No. ${s.code})</h3>
+          <p><strong>Group:</strong> ${s.group} | <strong>Category:</strong> ${s.category}</p>
+        </div>
+      `;
+    }
+
+    // --- ADMIN PANEL HTML ---
+    function renderAdmin() {
+      return `
+        <div class="section-title"><h2>Admin Control Centre</h2></div>
+        
+        <div class="panel">
+          <h3>Add Student</h3>
+          <div class="formgrid">
+            <input id="sn" placeholder="Student Name">
+            <input id="scode" placeholder="Chest Number (e.g. 102)">
+            <select id="sg"><option>DIJLA</option><option>FURATH</option><option>NAIL</option></select>
+            <select id="scat"><option>Fadhila</option><option>Fadheela</option></select>
+            <button class="primary" onclick="addStudent()">Save Student</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Add Programme / Event</h3>
+          <div class="formgrid">
+            <input id="pname" placeholder="Programme Name">
+            <select id="pcat"><option>Fadhila</option><option>Fadheela</option><option>General</option></select>
+            <select id="ptype"><option>Single</option><option>Group</option></select>
+            <select id="pstage"><option>Stage A</option><option>Stage B</option><option>Off-Stage</option></select>
+            <input id="pdate" placeholder="Date/Time">
+            <input id="pvenue" placeholder="Venue">
+            <button class="primary" onclick="addProgramme()">Save Programme</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Add Result</h3>
+          <div class="formgrid">
+            <input id="rpname" placeholder="Programme Name">
+            <select id="rgroup"><option>DIJLA</option><option>FURATH</option><option>NAIL</option></select>
+            <input id="rwinner" placeholder="Winner Name & Chest No.">
+            <select id="rgrade"><option>A</option><option>B</option><option>C</option></select>
+            <input id="rpoints" type="number" placeholder="Points (e.g. 10)">
+            <button class="primary" onclick="addResult()">Publish Result</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Post Announcement</h3>
+          <div class="formgrid">
+            <input id="atitle" placeholder="Announcement Title">
+            <input id="abody" placeholder="Details">
+            <button class="primary" onclick="addAnnouncement()">Post Announcement</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- SAVE FUNCTIONS ---
+    async function addStudent() {
+      const item = {
+        name: document.getElementById("sn").value.trim(),
+        code: document.getElementById("scode").value.trim(),
+        group: document.getElementById("sg").value,
+        category: document.getElementById("scat").value
+      };
+      const { error } = await supabaseClient.from('students').insert([item]);
+      alert(error ? "Error: " + error.message : "Student saved successfully!");
+    }
+
+    async function addProgramme() {
+      const item = {
+        name: document.getElementById("pname").value.trim(),
+        category: document.getElementById("pcat").value,
+        type: document.getElementById("ptype").value,
+        stage: document.getElementById("pstage").value,
+        date: document.getElementById("pdate").value.trim(),
+        venue: document.getElementById("pvenue").value.trim()
+      };
+      const { error } = await supabaseClient.from('programmes').insert([item]);
+      alert(error ? "Error: " + error.message : "Programme added successfully!");
+    }
+
+    async function addResult() {
+      const item = {
+        program: document.getElementById("rpname").value.trim(),
+        group: document.getElementById("rgroup").value,
+        winner: document.getElementById("rwinner").value.trim(),
+        grade: document.getElementById("rgrade").value,
+        points: Number(document.getElementById("rpoints").value) || 0
+      };
+      const { error } = await supabaseClient.from('results').insert([item]);
+      alert(error ? "Error: " + error.message : "Result published successfully!");
+    }
+
+    async function addAnnouncement() {
+      const item = {
+        title: document.getElementById("atitle").value.trim(),
+        body: document.getElementById("abody").value.trim()
+      };
+      const { error } = await supabaseClient.from('announcements').insert([item]);
+      alert(error ? "Error: " + error.message : "Announcement posted successfully!");
+    }
+
+    // Initial Load
+    renderNav();
+    renderPage();
+  </script>
+</body>
+</html>
