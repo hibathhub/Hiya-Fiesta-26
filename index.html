@@ -216,7 +216,7 @@
 
     let currentUser = null;
     let currentRole = null;
-    let currentPage = "Login";
+    let currentPage = "Home";
     let selectedScheduleDate = "28/08/2026";
 
     // Draft Schedule Initial Data from PDF
@@ -264,6 +264,18 @@
       "Executive": "exec2026",
       "Group Leader": "leader2026"
     };
+
+    function initAuth() {
+      const savedUser = localStorage.getItem("hiya_user");
+      const savedRole = localStorage.getItem("hiya_role");
+      if (savedUser && savedRole) {
+        currentUser = JSON.parse(savedUser);
+        currentRole = savedRole;
+        currentPage = "Home";
+      } else {
+        currentPage = "Login";
+      }
+    }
 
     function toggleDrawer(open) {
       const overlay = document.getElementById("drawer-overlay");
@@ -644,14 +656,8 @@
       alert(error ? "Error: " + error.message : "Result published!");
     }
 
-    const savedUser = localStorage.getItem("hiya_user");
-    const savedRole = localStorage.getItem("hiya_role");
-    if (savedUser && savedRole) {
-      currentUser = JSON.parse(savedUser);
-      currentRole = savedRole;
-      currentPage = "Home";
-    }
-
+    // Initialize saved login session on page load
+    initAuth();
     renderNav();
     renderPage();
   </script>
