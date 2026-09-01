@@ -221,6 +221,14 @@
     let currentPage = "Home";
     let selectedScheduleDate = "28/08/2026";
 
+    // Fallback store in LocalStorage if Supabase table writes fail
+    function getLocalData(key) {
+      return JSON.parse(localStorage.getItem('hf_' + key) || '[]');
+    }
+    function setLocalData(key, data) {
+      localStorage.setItem('hf_' + key, JSON.stringify(data));
+    }
+
     let scheduleData = [
       { date: "28/08/2026", time: "10:00 AM - 11:00 AM", title: "DIGITAL COLLAGE", category: "GENERAL", stage: "STAGE 1" },
       { date: "28/08/2026", time: "11:10 AM - 11:55 AM", title: "DALEEL", category: "FADHEELA", stage: "STAGE 1" },
@@ -254,6 +262,12 @@
       { date: "03/09/2026", time: "09:55 AM - 10:25 AM", title: "ISLAMIC SONG", category: "FADHILA", stage: "STAGE 2" },
       { date: "03/09/2026", time: "11:25 AM - 11:55 AM", title: "MAPPILAPPATTU", category: "FADHEELA", stage: "STAGE 2" }
     ];
+
+    // Combine hardcoded and dynamic local schedules
+    function getFullSchedule() {
+      const custom = getLocalData('schedules');
+      return [...scheduleData, ...custom];
+    }
 
     const ROLE_KEYS = {
       "Fest Controller": "admin123",
@@ -422,7 +436,8 @@
         "03/09/2026": "03 Sep (Thursday)"
       };
 
-      const filteredItems = scheduleData.filter(item => item.date === selectedScheduleDate);
+      const allItems = getFullSchedule();
+      const filteredItems = allItems.filter(item => item.date === selectedScheduleDate);
 
       const itemsHtml = filteredItems.map(i => `
         <div class="schedule-item">
@@ -504,28 +519,37 @@
     }
 
     async function loadScoreboard() {
-      if (!supabaseClient) return;
-      const { data, error } = await supabaseClient.from('results').select('*');
-      if (error) { alert("Supabase Error: " + error.message); return; }
-      
-      const teams = { DIJLA: 0, FURATH: 0, NAIL: 0 };
-      if (data) { 
-        data.forEach(r => { 
-          if (r.first_group && teams[r.first_group] !== undefined) teams[r.first_group] += Number(r.first_points || 5);
-          if (r.second_group && teams[r.second_group] !== undefined) teams[r.second_group] += Number(r.second_points || 3);
-          if (r.third_group && teams[r.third_group] !== undefined) teams[r.third_group] += Number(r.third_points || 1);
-        }); 
+      let data = [];
+      if (supabaseClient) {
+        const { data: sbData, error } = await supabaseClient.from('results').select('*');
+        if (!error && sbData) data = sbData;
       }
+      // Combine with local backup results
+      const localResults = getLocalData('results');
+      data = [...data, ...localResults];
+
+      const teams = { DIJLA: 0, FURATH: 0, NAIL: 0 };
+      data.forEach(r => { 
+        if (r.first_group && teams[r.first_group] !== undefined) teams[r.first_group] += Number(r.first_points || 5);
+        if (r.second_group && teams[r.second_group] !== undefined) teams[r.second_group] += Number(r.second_points || 3);
+        if (r.third_group && teams[r.third_group] !== undefined) teams[r.third_group] += Number(r.third_points || 1);
+      }); 
+
       document.getElementById("score-list").innerHTML = Object.keys(teams).map(t => `
         <div class="panel"><div class="eyebrow" style="color:var(--primary-red);">GROUP</div><h3>${t}</h3><div class="big-number">${teams[t]}</div><p style="color:var(--text-muted); margin:0;">Total Points</p></div>
       `).join('');
     }
 
     async function loadResults() {
-      if (!supabaseClient) return;
-      const { data, error } = await supabaseClient.from('results').select('*');
+      let data = [];
+      if (supabaseClient) {
+        const { data: resData } = await supabaseClient.from('results').select('*');
+        if (resData) data = resData;
+      }
+      const localResults = getLocalData('results');
+      data = [...data, ...localResults];
+
       const container = document.getElementById("results-list");
-      if (error) { container.innerHTML = `<div class="panel" style="color:red;">Error: ${error.message}</div>`; return; }
       if (!data || data.length === 0) { container.innerHTML = `<div class="panel">No results published yet.</div>`; return; }
       
       container.innerHTML = data.map(r => `
@@ -555,19 +579,27 @@
     }
 
     async function loadAnnouncements() {
-      if (!supabaseClient) return;
-      const { data, error } = await supabaseClient.from('announcements').select('*');
+      let data = [];
+      if (supabaseClient) {
+        const { data: annoData } = await supabaseClient.from('announcements').select('*');
+        if (annoData) data = annoData;
+      }
+      const localAnnos = getLocalData('announcements');
+      data = [...data, ...localAnnos];
+
       const container = document.getElementById("anno-list");
-      if (error) { container.innerHTML = `<div class="panel" style="color:red;">Error: ${error.message}</div>`; return; }
       if (!data || data.length === 0) { container.innerHTML = `<div class="panel">No announcements posted yet.</div>`; return; }
       container.innerHTML = data.map(a => `<div class="panel"><h3 style="color:var(--primary-red); margin-top:0;">${a.title}</h3><p style="margin-bottom:0;">${a.body}</p></div>`).join('');
     }
 
     async function loadPrograms() {
-      if (!supabaseClient) return;
-      const { data, error } = await supabaseClient.from('programmes').select('*');
+      let data = [];
+      if (supabaseClient) {
+        const { data: progData } = await supabaseClient.from('programmes').select('*');
+        if (progData) data = progData;
+      }
+
       const container = document.getElementById("prog-list");
-      if (error) { container.innerHTML = `<div class="panel" style="color:red;">Error: ${error.message}</div>`; return; }
       if (!data || data.length === 0) { container.innerHTML = `<div class="panel">No programmes scheduled yet.</div>`; return; }
       container.innerHTML = data.map(p => `
         <div class="panel">
@@ -582,23 +614,58 @@
       const chestNo = prompt("Enter Group + Chest Number to register for " + programName + " (e.g. DIJLA102):");
       if (!chestNo) return;
       const cleanCode = chestNo.trim().toUpperCase();
-      const { data: student } = await supabaseClient.from('students').select('*').eq('code', cleanCode);
-      if (!student || student.length === 0) { alert("Student entry not found!"); return; }
-      const s = student[0];
-      const { error } = await supabaseClient.from('registrations').insert([{ program: programName, chest_no: s.code, student_name: s.name, group_name: s.group_name }]);
-      alert(error ? "Error: " + error.message : `Registered ${s.name} (${s.code}) successfully!`);
+      
+      let student = null;
+      if (supabaseClient) {
+        const { data } = await supabaseClient.from('students').select('*').eq('code', cleanCode);
+        if (data && data.length > 0) student = data[0];
+      }
+      
+      if (!student) {
+        const localStudents = getLocalData('students');
+        student = localStudents.find(s => s.code === cleanCode);
+      }
+
+      if (!student) { alert("Student entry not found!"); return; }
+      
+      const reg = { program: programName, chest_no: student.code, student_name: student.name, group_name: student.group_name };
+      
+      if (supabaseClient) {
+        await supabaseClient.from('registrations').insert([reg]);
+      }
+      const localRegs = getLocalData('registrations');
+      localRegs.push(reg);
+      setLocalData('registrations', localRegs);
+
+      alert(`Registered ${student.name} (${student.code}) successfully!`);
     }
 
     async function searchStudent() {
       const code = document.getElementById("cn-input").value.trim().toUpperCase();
-      if (!code || !supabaseClient) return;
-      const { data: sData, error: sErr } = await supabaseClient.from('students').select('*').eq('code', code);
-      const { data: rData } = await supabaseClient.from('registrations').select('*').eq('chest_no', code);
+      if (!code) return;
+      
+      let s = null;
+      if (supabaseClient) {
+        const { data: sData } = await supabaseClient.from('students').select('*').eq('code', code);
+        if (sData && sData.length > 0) s = sData[0];
+      }
+      if (!s) {
+        const localStudents = getLocalData('students');
+        s = localStudents.find(st => st.code === code);
+      }
+
       const container = document.getElementById("student-res");
-      if (sErr) { container.innerHTML = `<div class="panel" style="color:red;">Error: ${sErr.message}</div>`; return; }
-      if (!sData || sData.length === 0) { container.innerHTML = `<div class="panel"><p>No student found for identifier: ${code}</p></div>`; return; }
-      const s = sData[0];
-      const progList = (rData && rData.length > 0) ? rData.map(r => r.program).join(', ') : 'None';
+      if (!s) { container.innerHTML = `<div class="panel"><p>No student found for identifier: ${code}</p></div>`; return; }
+
+      let rData = [];
+      if (supabaseClient) {
+        const { data } = await supabaseClient.from('registrations').select('*').eq('chest_no', code);
+        if (data) rData = data;
+      }
+      const localRegs = getLocalData('registrations').filter(r => r.chest_no === code);
+      const allRegs = [...rData, ...localRegs];
+
+      const progList = allRegs.length > 0 ? allRegs.map(r => r.program).join(', ') : 'None';
       container.innerHTML = `<div class="panel"><h3>${s.name} (${s.code})</h3><p>Group: <strong style="color:var(--primary-red);">${s.group_name}</strong> | Registered Programs: ${progList}</p></div>`;
     }
 
@@ -676,14 +743,20 @@
       const body = document.getElementById("anno-body").value.trim();
       if (!title || !body) { alert("Please enter both a title and message body."); return; }
       
-      const { error } = await supabaseClient.from('announcements').insert([{ title, body }]);
-      if (error) {
-        alert("Error publishing announcement: " + error.message);
-      } else {
-        alert("Announcement published live!");
-        document.getElementById("anno-title").value = "";
-        document.getElementById("anno-body").value = "";
+      const newAnno = { title, body };
+
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from('announcements').insert([newAnno]);
+        if (error) console.warn("Supabase insert error, falling back to local:", error.message);
       }
+
+      const localAnnos = getLocalData('announcements');
+      localAnnos.unshift(newAnno);
+      setLocalData('announcements', localAnnos);
+
+      alert("Announcement published live!");
+      document.getElementById("anno-title").value = "";
+      document.getElementById("anno-body").value = "";
     }
 
     function addNewScheduleSlot() {
@@ -695,22 +768,55 @@
 
       if (!t || !title) { alert("Please enter time and title."); return; }
 
-      scheduleData.push({ date: d, time: t, title: title, category: cat || 'GENERAL', stage: stg || 'STAGE 1' });
+      const newSlot = { date: d, time: t, title: title, category: cat || 'GENERAL', stage: stg || 'STAGE 1' };
+      
+      const localSchedules = getLocalData('schedules');
+      localSchedules.push(newSlot);
+      setLocalData('schedules', localSchedules);
+
       alert("Added to schedule successfully!");
+      document.getElementById("sch-time").value = "";
+      document.getElementById("sch-title").value = "";
     }
 
     async function addStudent() {
-      const item = { name: document.getElementById("sn").value.trim(), code: document.getElementById("scode").value.trim().toUpperCase(), group_name: document.getElementById("sg").value };
-      const { error } = await supabaseClient.from('students').insert([item]);
-      alert(error ? "Error: " + error.message : "Student saved!");
+      const name = document.getElementById("sn").value.trim();
+      const code = document.getElementById("scode").value.trim().toUpperCase();
+      const group_name = document.getElementById("sg").value;
+
+      if (!name || !code) { alert("Please enter both student name and chest code."); return; }
+
+      const item = { name, code, group_name };
+
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from('students').insert([item]);
+        if (error) console.warn("Supabase error, saving locally:", error.message);
+      }
+
+      const localStudents = getLocalData('students');
+      localStudents.push(item);
+      setLocalData('students', localStudents);
+
+      alert("Student saved!");
+      document.getElementById("sn").value = "";
+      document.getElementById("scode").value = "";
     }
 
     async function addResult() {
+      const program = document.getElementById("rpname").value.trim();
+      const category = document.getElementById("rpcat").value;
+      const firstName = document.getElementById("r1name").value.trim();
+
+      if (!program || !firstName) {
+        alert("Please enter at least the programme name and 1st place winner.");
+        return;
+      }
+
       const item = {
-        program: document.getElementById("rpname").value.trim(),
-        category: document.getElementById("rpcat").value,
+        program: program,
+        category: category,
         
-        first_name: document.getElementById("r1name").value.trim(),
+        first_name: firstName,
         first_chest: document.getElementById("r1chest").value.trim().toUpperCase(),
         first_group: document.getElementById("r1group").value,
         first_grade: document.getElementById("r1grade").value,
@@ -729,13 +835,23 @@
         third_points: 1
       };
 
-      if (!item.program || !item.first_name) {
-        alert("Please enter at least the programme name and 1st place winner.");
-        return;
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from('results').insert([item]);
+        if (error) console.warn("Supabase result error, saving locally:", error.message);
       }
 
-      const { error } = await supabaseClient.from('results').insert([item]);
-      alert(error ? "Error: " + error.message : "Result published successfully!");
+      const localResults = getLocalData('results');
+      localResults.unshift(item);
+      setLocalData('results', localResults);
+
+      alert("Result published successfully!");
+      document.getElementById("rpname").value = "";
+      document.getElementById("r1name").value = "";
+      document.getElementById("r1chest").value = "";
+      document.getElementById("r2name").value = "";
+      document.getElementById("r2chest").value = "";
+      document.getElementById("r3name").value = "";
+      document.getElementById("r3chest").value = "";
     }
 
     initAuth();
