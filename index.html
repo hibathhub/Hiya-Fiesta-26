@@ -57,53 +57,112 @@
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
     
     <!-- Hero Banner -->
-    <div class="bg-gradient-to-r from-red-600 to-crimson-dark text-white rounded-2xl p-6 sm:p-8 shadow-sm">
-      <h2 class="text-2xl sm:text-3xl font-extrabold">Welcome to HIYA FIESTA '26</h2>
-      <p class="mt-2 text-red-100 text-sm sm:text-base">Official management & live results portal for schedules, announcements, and leaderboards.</p>
+    <div class="bg-gradient-to-r from-red-600 to-crimson-dark text-white rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold">HIYA FIESTA '26 Portal</h2>
+        <p class="mt-1 text-red-100 text-sm sm:text-base">Real-time schedule, registration lookup, and live result standings.</p>
+      </div>
+      <div class="flex gap-2 text-xs font-semibold">
+        <button onclick="switchTab('overview')" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg border border-white/20 backdrop-blur-sm">Overview</button>
+        <button onclick="switchTab('programmes')" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg border border-white/20 backdrop-blur-sm">Programmes</button>
+        <button onclick="switchTab('search')" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg border border-white/20 backdrop-blur-sm">Student Search</button>
+      </div>
     </div>
 
-    <!-- Live Announcements & Results Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
-      <!-- Announcements Panel -->
-      <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between border-b pb-3">
-          <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2">
-            <i class="fa-solid fa-bullhorn text-crimson"></i> Announcements
-          </h3>
-        </div>
-        <div id="announcementsList" class="space-y-3 text-sm text-gray-600">
-          <p class="text-gray-400 italic">Loading announcements...</p>
-        </div>
+    <!-- Live Announcements Banner -->
+    <div class="bg-white p-4 rounded-2xl border border-red-100 shadow-sm space-y-2">
+      <div class="flex items-center gap-2 text-crimson font-bold text-sm">
+        <i class="fa-solid fa-bullhorn animate-pulse"></i>
+        <span>Latest Announcements</span>
       </div>
+      <div id="announcementsList" class="space-y-2 text-sm text-gray-600">
+        <p class="text-gray-400 italic">Loading announcements...</p>
+      </div>
+    </div>
 
-      <!-- Published Results Display -->
-      <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between border-b pb-3">
-          <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2">
+    <!-- TAB 1: OVERVIEW & RESULTS -->
+    <div id="tabOverview" class="space-y-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Live Leaderboard / Standings -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2 border-b pb-3">
+            <i class="fa-solid fa-ranking-star text-crimson"></i> Group Tally
+          </h3>
+          <div id="groupLeaderboard" class="space-y-3">
+            <p class="text-gray-400 italic text-sm">Calculating points...</p>
+          </div>
+        </div>
+
+        <!-- Published Event Results -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2 border-b pb-3">
             <i class="fa-solid fa-trophy text-crimson"></i> Event Results
           </h3>
+          <div id="resultsList" class="space-y-4">
+            <p class="text-gray-400 italic text-sm">Loading results...</p>
+          </div>
         </div>
-        <div id="resultsList" class="space-y-4">
-          <p class="text-gray-400 italic">Loading results...</p>
-        </div>
+
       </div>
     </div>
 
-    <!-- Admin Panel (Fest Controller & Executives) -->
+    <!-- TAB 2: PROGRAMME SCHEDULE -->
+    <div id="tabProgrammes" class="hidden bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+      <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2 border-b pb-3">
+        <i class="fa-solid fa-calendar-days text-crimson"></i> Programme Schedule
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-50 text-gray-600 text-xs uppercase border-b">
+            <tr>
+              <th class="p-3">ID / Code</th>
+              <th class="p-3">Programme Name</th>
+              <th class="p-3">Category</th>
+              <th class="p-3">Stage / Venue</th>
+              <th class="p-3">Time</th>
+              <th class="p-3">Status</th>
+            </tr>
+          </thead>
+          <tbody id="programmesTable" class="divide-y text-gray-700">
+            <tr><td colspan="6" class="p-4 text-center text-gray-400 italic">Loading schedule...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: STUDENT REGISTRATION SEARCH -->
+    <div id="tabSearch" class="hidden bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+      <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2 border-b pb-3">
+        <i class="fa-solid fa-magnifying-glass text-crimson"></i> Student & Registration Search
+      </h3>
+      
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input type="text" id="searchInput" placeholder="Enter Chest Number or Student Name..." class="flex-1 p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-crimson outline-none"/>
+        <button onclick="searchStudent()" class="bg-crimson hover:bg-crimson-dark text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors">
+          Search
+        </button>
+      </div>
+
+      <div id="searchResults" class="space-y-4">
+        <!-- Results display here dynamically -->
+      </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD (Fest Controller & Executive) -->
     <div id="adminPanel" class="hidden bg-white p-6 sm:p-8 rounded-2xl border border-red-200 shadow-sm space-y-6">
       <div class="border-b border-gray-200 pb-4">
         <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <i class="fa-solid fa-user-shield text-crimson"></i> Admin Dashboard
+          <i class="fa-solid fa-user-shield text-crimson"></i> Admin Management Center
         </h3>
-        <p class="text-xs text-gray-500 mt-1">Publish results, update rankings, and broadcast announcements.</p>
+        <p class="text-xs text-gray-500 mt-1">Publish results, register students, and update announcements.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         
         <!-- Post Announcement Form -->
-        <div class="space-y-4">
-          <h4 class="font-semibold text-gray-800 border-b pb-2">Post Announcement</h4>
+        <div class="space-y-4 border-b md:border-b-0 md:border-r pb-6 md:pb-0 md:pr-6">
+          <h4 class="font-semibold text-gray-800 border-b pb-2 text-sm">Post Announcement</h4>
           <form onsubmit="publishAnnouncement(event)" class="space-y-3">
             <div>
               <label class="block text-xs font-medium text-gray-700">Message</label>
@@ -117,10 +176,10 @@
 
         <!-- Publish Event Result Form -->
         <div class="space-y-4">
-          <h4 class="font-semibold text-gray-800 border-b pb-2">Publish Result</h4>
+          <h4 class="font-semibold text-gray-800 border-b pb-2 text-sm">Publish Result</h4>
           <form onsubmit="publishResult(event)" class="space-y-3">
             <div>
-              <label class="block text-xs font-medium text-gray-700">Programme / Event Name</label>
+              <label class="block text-xs font-medium text-gray-700">Programme Name</label>
               <input type="text" id="progName" required class="mt-1 w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-crimson outline-none" placeholder="e.g. Arabic Recitation"/>
             </div>
 
@@ -177,7 +236,7 @@
       
       <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Enter Role Access Key / PIN</label>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Enter Role Access PIN</label>
           <input type="password" id="accessPin" required class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-crimson outline-none" placeholder="Enter PIN (e.g. admin123)"/>
         </div>
         <p id="loginError" class="text-xs text-red-600 hidden">Invalid PIN code. Please try again.</p>
@@ -215,7 +274,19 @@
       restoreSession();
       loadAnnouncements();
       loadResults();
+      loadProgrammes();
     });
+
+    // Navigation Switcher
+    function switchTab(tabName) {
+      document.getElementById('tabOverview').classList.add('hidden');
+      document.getElementById('tabProgrammes').classList.add('hidden');
+      document.getElementById('tabSearch').classList.add('hidden');
+
+      if (tabName === 'overview') document.getElementById('tabOverview').classList.remove('hidden');
+      if (tabName === 'programmes') document.getElementById('tabProgrammes').classList.remove('hidden');
+      if (tabName === 'search') document.getElementById('tabSearch').classList.remove('hidden');
+    }
 
     // Handle Persistent Login Sessions
     function restoreSession() {
@@ -320,6 +391,80 @@
             ${r.second_chest ? `<div class="p-2 bg-gray-100 rounded border border-gray-200">🥈 <b>2nd:</b> ${r.second_chest} (${r.second_group}) ${r.second_grade ? `[${r.second_grade}]` : ''}</div>` : ''}
             ${r.third_chest ? `<div class="p-2 bg-amber-50 rounded border border-amber-200">🥉 <b>3rd:</b> ${r.third_chest} (${r.third_group}) ${r.third_grade ? `[${r.third_grade}]` : ''}</div>` : ''}
           </div>
+        </div>
+      `).join('');
+
+      calculateGroupPoints(data);
+    }
+
+    function calculateGroupPoints(results) {
+      const scores = {};
+      results.forEach(r => {
+        if (r.first_group) scores[r.first_group] = (scores[r.first_group] || 0) + 5;
+        if (r.second_group) scores[r.second_group] = (scores[r.second_group] || 0) + 3;
+        if (r.third_group) scores[r.third_group] = (scores[r.third_group] || 0) + 1;
+      });
+
+      const container = document.getElementById('groupLeaderboard');
+      const sorted = Object.entries(scores).sort((a,b) => b[1] - a[1]);
+
+      if (sorted.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 italic text-sm">No group points recorded yet.</p>';
+        return;
+      }
+
+      container.innerHTML = sorted.map(([group, pts], idx) => `
+        <div class="flex items-center justify-between p-3 border rounded-xl bg-gray-50">
+          <span class="font-bold text-sm text-gray-800">#${idx + 1} ${group}</span>
+          <span class="font-extrabold text-crimson text-sm">${pts} Points</span>
+        </div>
+      `).join('');
+    }
+
+    async function loadProgrammes() {
+      const container = document.getElementById('programmesTable');
+      if (!supabaseClient) return;
+
+      const { data, error } = await supabaseClient.from('programmes').select('*');
+
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400 italic">No programmes scheduled.</td></tr>';
+        return;
+      }
+
+      container.innerHTML = data.map(p => `
+        <tr class="hover:bg-gray-50">
+          <td class="p-3 font-semibold">${p.code || p.id}</td>
+          <td class="p-3 font-bold text-gray-900">${p.name || p.title}</td>
+          <td class="p-3">${p.category || '-'}</td>
+          <td class="p-3">${p.stage || 'Main Stage'}</td>
+          <td class="p-3">${p.time || '-'}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600">${p.status || 'Scheduled'}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    async function searchStudent() {
+      const query = document.getElementById('searchInput').value.trim();
+      const container = document.getElementById('searchResults');
+      if (!query || !supabaseClient) return;
+
+      container.innerHTML = '<p class="text-gray-400 italic text-sm">Searching...</p>';
+
+      const { data, error } = await supabaseClient.from('students').select('*').or(`chest_no.eq.${query},name.ilike.%${query}%`);
+
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<p class="text-red-500 italic text-sm">No student found matching query.</p>';
+        return;
+      }
+
+      container.innerHTML = data.map(s => `
+        <div class="p-4 border rounded-xl bg-gray-50 space-y-2">
+          <div class="flex justify-between items-center border-b pb-2">
+            <h4 class="font-bold text-gray-900">${s.name}</h4>
+            <span class="text-xs font-bold text-crimson bg-crimson-light px-2.5 py-1 rounded-full">Chest #${s.chest_no}</span>
+          </div>
+          <p class="text-xs text-gray-600"><b>Group:</b> ${s.group_name || s.group || 'N/A'} | <b>Category:</b> ${s.category || 'N/A'}</p>
         </div>
       `).join('');
     }
