@@ -177,6 +177,15 @@
   .sched-details { flex-grow: 1; }
   .sched-title { font-weight: 700; font-size: 15px; color: var(--text-dark); }
   .sched-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Results Table Styles */
+  .results-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .results-table th, .results-table td { padding: 10px; border-bottom: 1px solid var(--border-line); text-align: left; font-size: 13px; }
+  .results-table th { background: var(--input-bg); color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+  .pos-badge { font-weight: 800; padding: 2px 8px; border-radius: 6px; font-size: 12px; display: inline-block; }
+  .pos-1 { background: #fef08a; color: #854d0e; }
+  .pos-2 { background: #e2e8f0; color: #475569; }
+  .pos-3 { background: #ffedd5; color: #9a3412; }
   </style>
 </head>
 <body>
@@ -221,14 +230,11 @@
 
     // Draft Schedule Initial Data from PDF
     let scheduleData = [
-      // 28/08/2026 FRIDAY
       { date: "28/08/2026", time: "10:00 AM - 11:00 AM", title: "DIGITAL COLLAGE", category: "GENERAL", stage: "STAGE 1" },
       { date: "28/08/2026", time: "11:10 AM - 11:55 AM", title: "DALEEL", category: "FADHEELA", stage: "STAGE 1" },
       { date: "28/08/2026", time: "11:55 AM - 12:35 PM", title: "LIVE TRANSLATION", category: "FADHEELA", stage: "STAGE 2" },
       { date: "28/08/2026", time: "02:00 PM - 02:45 PM", title: "MADHURA MALAYALAM", category: "FADHILA", stage: "STAGE 1" },
       { date: "28/08/2026", time: "03:00 PM - 03:45 PM", title: "MADHURA MALAYALAM", category: "FADHEELA", stage: "STAGE 1" },
-      
-      // 02/09/2026 WEDNESDAY
       { date: "02/09/2026", time: "09:30 AM - 09:55 AM", title: "QIRAATH", category: "FADHEELA", stage: "STAGE 1" },
       { date: "02/09/2026", time: "10:00 AM - 10:35 AM", title: "INAUGURAL SESSION", category: "GENERAL", stage: "STAGE 1" },
       { date: "02/09/2026", time: "10:40 AM - 11:30 AM", title: "SPEECH MALAYALAM", category: "FADHEELA", stage: "STAGE 1" },
@@ -243,8 +249,6 @@
       { date: "02/09/2026", time: "10:40 AM - 11:10 AM", title: "ARABIC SONG", category: "FADHILA", stage: "STAGE 2" },
       { date: "02/09/2026", time: "12:00 PM - 12:30 PM", title: "ISLAMIC SONG", category: "FADHEELA", stage: "STAGE 2" },
       { date: "02/09/2026", time: "01:35 PM - 02:35 PM", title: "PADIPPARAYAL", category: "FADHILA", stage: "STAGE 2" },
-
-      // 03/09/2026 THURSDAY
       { date: "03/09/2026", time: "09:30 AM - 09:50 AM", title: "QIRAATH", category: "FADHILA", stage: "STAGE 1" },
       { date: "03/09/2026", time: "09:55 AM - 10:25 AM", title: "SPEECH ENGLISH", category: "FADHEELA", stage: "STAGE 1" },
       { date: "03/09/2026", time: "10:30 AM - 11:20 AM", title: "MASHUP", category: "GENERAL", stage: "STAGE 1" },
@@ -391,7 +395,7 @@
         loadScoreboard();
       } 
       else if (currentPage === "Results") {
-        app.innerHTML = `<h2>Event Results</h2><div id="results-list">Loading...</div>`;
+        app.innerHTML = `<h2>Published Event Results</h2><div id="results-list">Loading...</div>`;
         loadResults();
       } 
       else if (currentPage === "Announcements") {
@@ -512,7 +516,13 @@
       if (!supabaseClient) return;
       const { data } = await supabaseClient.from('results').select('*');
       const teams = { DIJLA: 0, FURATH: 0, NAIL: 0 };
-      if (data) { data.forEach(r => { if (teams[r.group_name] !== undefined) teams[r.group_name] += Number(r.points) || 0; }); }
+      if (data) { 
+        data.forEach(r => { 
+          if (r.first_group && teams[r.first_group] !== undefined) teams[r.first_group] += Number(r.first_points || 5);
+          if (r.second_group && teams[r.second_group] !== undefined) teams[r.second_group] += Number(r.second_points || 3);
+          if (r.third_group && teams[r.third_group] !== undefined) teams[r.third_group] += Number(r.third_points || 1);
+        }); 
+      }
       document.getElementById("score-list").innerHTML = Object.keys(teams).map(t => `
         <div class="panel"><div class="eyebrow" style="color:var(--primary-red);">GROUP</div><h3>${t}</h3><div class="big-number">${teams[t]}</div><p style="color:var(--text-muted); margin:0;">Total Points</p></div>
       `).join('');
@@ -523,7 +533,31 @@
       const { data } = await supabaseClient.from('results').select('*');
       const container = document.getElementById("results-list");
       if (!data || data.length === 0) { container.innerHTML = `<div class="panel">No results published yet.</div>`; return; }
-      container.innerHTML = data.map(r => `<div class="panel"><h3>${r.program}</h3><p><strong>Winner:</strong> ${r.winner} (${r.group_name}) | Grade: <span class="pill">${r.grade}</span> | Points: <strong>${r.points}</strong></p></div>`).join('');
+      
+      container.innerHTML = data.map(r => `
+        <div class="panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-line); padding-bottom:8px; margin-bottom:12px;">
+            <h3 style="margin:0; color:var(--primary-red);">${r.program}</h3>
+            <span class="pill">${r.category || 'General'}</span>
+          </div>
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Place</th>
+                <th>Name</th>
+                <th>Chest No</th>
+                <th>Group</th>
+                <th>Grade</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${r.first_name ? `<tr><td><span class="pos-badge pos-1">1st</span></td><td><strong>${r.first_name}</strong></td><td>${r.first_chest || '-'}</td><td>${r.first_group || '-'}</td><td><span class="pill">${r.first_grade || '-'}</span></td></tr>` : ''}
+              ${r.second_name ? `<tr><td><span class="pos-badge pos-2">2nd</span></td><td><strong>${r.second_name}</strong></td><td>${r.second_chest || '-'}</td><td>${r.second_group || '-'}</td><td><span class="pill">${r.second_grade || '-'}</span></td></tr>` : ''}
+              ${r.third_name ? `<tr><td><span class="pos-badge pos-3">3rd</span></td><td><strong>${r.third_name}</strong></td><td>${r.third_chest || '-'}</td><td>${r.third_group || '-'}</td><td><span class="pill">${r.third_grade || '-'}</span></td></tr>` : ''}
+            </tbody>
+          </table>
+        </div>
+      `).join('');
     }
 
     async function loadAnnouncements() {
@@ -605,13 +639,37 @@
         </div>
 
         <div class="panel">
-          <h3>🏆 Publish Result</h3>
-          <input id="rpname" placeholder="Programme Name">
-          <select id="rgroup" style="margin-top:8px;"><option>DIJLA</option><option>FURATH</option><option>NAIL</option></select>
-          <input id="rwinner" placeholder="Winner Name & Group+Chest No" style="margin-top:8px;">
-          <select id="rgrade" style="margin-top:8px;"><option>A</option><option>B</option><option>C</option></select>
-          <input id="rpoints" type="number" placeholder="Points" style="margin-top:8px;">
-          <button class="primary" onclick="addResult()" style="margin-top:12px;">Publish Result</button>
+          <h3>🏆 Publish Event Result</h3>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <input id="rpname" placeholder="Programme Name (e.g. SPEECH MALAYALAM)">
+            <select id="rpcat"><option value="FADHEELA">FADHEELA</option><option value="FADHILA">FADHILA</option><option value="GENERAL">GENERAL</option></select>
+          </div>
+          
+          <h4 style="margin:16px 0 8px 0; color:var(--primary-red);">🥇 1st Place</h4>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px;">
+            <input id="r1name" placeholder="Student Name">
+            <input id="r1chest" placeholder="Chest No">
+            <select id="r1group"><option>DIJLA</option><option>FURATH</option><option>NAIL</option></select>
+            <select id="r1grade"><option value="A">Grade A</option><option value="B">Grade B</option><option value="C">Grade C</option><option value="-">No Grade</option></select>
+          </div>
+
+          <h4 style="margin:16px 0 8px 0; color:var(--primary-red);">🥈 2nd Place</h4>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px;">
+            <input id="r2name" placeholder="Student Name">
+            <input id="r2chest" placeholder="Chest No">
+            <select id="r2group"><option>DIJLA</option><option>FURATH</option><option>NAIL</option></select>
+            <select id="r2grade"><option value="A">Grade A</option><option value="B">Grade B</option><option value="C">Grade C</option><option value="-">No Grade</option></select>
+          </div>
+
+          <h4 style="margin:16px 0 8px 0; color:var(--primary-red);">🥉 3rd Place</h4>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px;">
+            <input id="r3name" placeholder="Student Name">
+            <input id="r3chest" placeholder="Chest No">
+            <select id="r3group"><option>DIJLA</option><option>FURATH</option><option>NAIL</option></select>
+            <select id="r3grade"><option value="A">Grade A</option><option value="B">Grade B</option><option value="C">Grade C</option><option value="-">No Grade</option></select>
+          </div>
+
+          <button class="primary" onclick="addResult()" style="margin-top:16px;">Publish Event Result</button>
         </div>
       `;
     }
@@ -651,9 +709,36 @@
     }
 
     async function addResult() {
-      const item = { program: document.getElementById("rpname").value.trim(), group_name: document.getElementById("rgroup").value, winner: document.getElementById("rwinner").value.trim(), grade: document.getElementById("rgrade").value, points: Number(document.getElementById("rpoints").value) || 0 };
+      const item = {
+        program: document.getElementById("rpname").value.trim(),
+        category: document.getElementById("rpcat").value,
+        
+        first_name: document.getElementById("r1name").value.trim(),
+        first_chest: document.getElementById("r1chest").value.trim().toUpperCase(),
+        first_group: document.getElementById("r1group").value,
+        first_grade: document.getElementById("r1grade").value,
+        first_points: 5,
+
+        second_name: document.getElementById("r2name").value.trim(),
+        second_chest: document.getElementById("r2chest").value.trim().toUpperCase(),
+        second_group: document.getElementById("r2group").value,
+        second_grade: document.getElementById("r2grade").value,
+        second_points: 3,
+
+        third_name: document.getElementById("r3name").value.trim(),
+        third_chest: document.getElementById("r3chest").value.trim().toUpperCase(),
+        third_group: document.getElementById("r3group").value,
+        third_grade: document.getElementById("r3grade").value,
+        third_points: 1
+      };
+
+      if (!item.program || !item.first_name) {
+        alert("Please enter at least the programme name and 1st place winner.");
+        return;
+      }
+
       const { error } = await supabaseClient.from('results').insert([item]);
-      alert(error ? "Error: " + error.message : "Result published!");
+      alert(error ? "Error: " + error.message : "Result published successfully!");
     }
 
     // Initialize saved login session on page load
