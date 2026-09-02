@@ -4,88 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HIYA FIESTA '26</title>
-  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --primary: #990000;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text: #0f172a;
-    }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 16px;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .header {
-      background: var(--primary);
-      color: white;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .nav {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .nav button {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #cbd5e1;
-      background: white;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .nav button.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-    .card {
-      background: var(--card-bg);
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-      margin-bottom: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      margin-bottom: 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    .btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px;
-      width: 100%;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .badge {
-      background: #fee2e2;
-      color: var(--primary);
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: bold;
-    }
+    :root { --primary: #990000; --bg: #f8fafc; --card-bg: #ffffff; --text: #0f172a; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; }
+    .container { max-width: 600px; margin: 0 auto; }
+    .header { background: var(--primary); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+    .nav { display: flex; gap: 6px; margin-bottom: 20px; overflow-x: auto; }
+    .nav button { flex: 1; padding: 10px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 13px; }
+    .nav button.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
+    input, textarea, select { width: 100%; padding: 10px; margin-top: 4px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+    .btn { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .btn-danger { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .badge { background: #fee2e2; color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 4px; }
+    .grade { background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 4px; }
+    .winner-row { background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -93,11 +27,12 @@
 <div class="container">
   <div class="header">
     <h1 style="margin:0;">HIYA FIESTA '26</h1>
-    <p style="margin:5px 0 0 0; opacity:0.85;">BEYOND EVERY HORIZON</p>
+    <p style="margin:4px 0 0 0; opacity:0.85;">BEYOND EVERY HORIZON</p>
   </div>
 
   <div class="nav">
     <button onclick="showPage('announcements')" id="btn-announcements" class="active">Announcements</button>
+    <button onclick="showPage('schedule')" id="btn-schedule">Schedule</button>
     <button onclick="showPage('results')" id="btn-results">Results</button>
     <button onclick="showPage('admin')" id="btn-admin">Admin</button>
   </div>
@@ -106,6 +41,12 @@
   <div id="page-announcements">
     <h3>📢 Latest Announcements</h3>
     <div id="anno-list">Loading...</div>
+  </div>
+
+  <!-- SCHEDULE PAGE -->
+  <div id="page-schedule" style="display:none;">
+    <h3>📅 Programme Schedule</h3>
+    <div id="sched-list">Loading...</div>
   </div>
 
   <!-- RESULTS PAGE -->
@@ -124,36 +65,66 @@
     </div>
 
     <div class="card">
+      <h3>📅 Add Schedule Event</h3>
+      <input id="sch-p" placeholder="Programme Name">
+      <input id="sch-c" placeholder="Category (e.g. Senior / Sub-Junior)">
+      <input id="sch-t" placeholder="Time Slot (e.g. 10:00 AM - Stage 1)">
+      <input id="sch-v" placeholder="Venue / Stage Name">
+      <button class="btn" onclick="postSchedule()">Add to Schedule</button>
+    </div>
+
+    <div class="card">
       <h3>🏆 Publish Result</h3>
-      <input id="res-p" placeholder="Programme Name (e.g., Speech Malayalam)">
-      <input id="res-1n" placeholder="Winner Name">
-      <input id="res-1c" placeholder="Chest Number">
-      <select id="res-1g">
-        <option value="DIJLA">DIJLA</option>
-        <option value="FURATH">FURATH</option>
-        <option value="NAIL">NAIL</option>
-      </select>
+      <input id="res-p" placeholder="Programme Name">
+      <input id="res-cat" placeholder="Category (e.g. Senior / Junior)">
+      
+      <div class="winner-row">
+        <strong>🥇 First Place (Separated by commas if multiple)</strong>
+        <input id="res-1n" placeholder="Name(s) (e.g. Name A, Name B)">
+        <input id="res-1c" placeholder="Chest No(s)">
+        <select id="res-1g"><option value="DIJLA">DIJLA</option><option value="FURATH">FURATH</option><option value="NAIL">NAIL</option></select>
+        <input id="res-1gr" placeholder="Grade (e.g. A Grade / B Grade)">
+      </div>
+
+      <div class="winner-row">
+        <strong>🥈 Second Place</strong>
+        <input id="res-2n" placeholder="Name(s)">
+        <input id="res-2c" placeholder="Chest No(s)">
+        <select id="res-2g"><option value="DIJLA">DIJLA</option><option value="FURATH">FURATH</option><option value="NAIL">NAIL</option></select>
+        <input id="res-2gr" placeholder="Grade">
+      </div>
+
+      <div class="winner-row">
+        <strong>🥉 Third Place</strong>
+        <input id="res-3n" placeholder="Name(s)">
+        <input id="res-3c" placeholder="Chest No(s)">
+        <select id="res-3g"><option value="DIJLA">DIJLA</option><option value="FURATH">FURATH</option><option value="NAIL">NAIL</option></select>
+        <input id="res-3gr" placeholder="Grade">
+      </div>
+
       <button class="btn" onclick="postResult()">Publish Result</button>
     </div>
   </div>
 </div>
 
 <script>
-  // UPDATE THESE WITH YOUR NEW CREDENTIALS
   const SUPABASE_URL = "https://ikubypozsbufybzdjjoy.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrdWJ5cG96c2J1ZnliemRqam95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNzY0MTcsImV4cCI6MjEwMzg1MjQxN30.2YzBGiZNTDy6RC4kkys2xU6CSqTRdGSrk26eBtjs-FU";
+  // PUT YOUR ANON KEY IN THE QUOTES BELOW
+  const SUPABASE_KEY = "PASTE_YOUR_COPIED_ANON_KEY_HERE";
 
   const db = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
   function showPage(page) {
-    ['announcements', 'results', 'admin'].forEach(p => {
+    ['announcements', 'schedule', 'results', 'admin'].forEach(p => {
       document.getElementById('page-' + p).style.display = p === page ? 'block' : 'none';
       document.getElementById('btn-' + p).classList.toggle('active', p === page);
     });
     if (page === 'announcements') loadAnnouncements();
+    if (page === 'schedule') loadSchedule();
     if (page === 'results') loadResults();
   }
 
+  // ANNOUNCEMENTS
   async function loadAnnouncements() {
     let list = [];
     if (db) {
@@ -165,66 +136,121 @@
 
     const el = document.getElementById('anno-list');
     if (!list.length) { el.innerHTML = '<p>No announcements yet.</p>'; return; }
-    el.innerHTML = list.map(a => `<div class="card"><strong>${a.title}</strong><p style="margin:6px 0 0 0;">${a.body}</p></div>`).join('');
+    el.innerHTML = list.map(a => `
+      <div class="card">
+        <strong>${a.title}</strong>
+        <p style="margin:4px 0 0 0;">${a.body}</p>
+        <button class="btn-danger" onclick="deleteItem('announcements', ${a.id})">Delete</button>
+      </div>
+    `).join('');
   }
 
   async function postAnnouncement() {
     const title = document.getElementById('anno-t').value.trim();
     const body = document.getElementById('anno-b').value.trim();
-    if (!title || !body) return alert('Please enter both title and details.');
+    if (!title || !body) return alert('Fill in all fields');
 
     const item = { title, body };
     if (db) await db.from('announcements').insert([item]);
-
-    const local = JSON.parse(localStorage.getItem('announcements') || '[]');
-    local.unshift(item);
-    localStorage.setItem('announcements', JSON.stringify(local));
-
-    alert('Announcement posted successfully!');
+    
+    alert('Announcement posted!');
     document.getElementById('anno-t').value = '';
     document.getElementById('anno-b').value = '';
     loadAnnouncements();
   }
 
+  // SCHEDULE
+  async function loadSchedule() {
+    let list = [];
+    if (db) {
+      const { data } = await db.from('schedules').select('*').order('id', { ascending: true });
+      if (data) list = data;
+    }
+    const el = document.getElementById('sched-list');
+    if (!list.length) { el.innerHTML = '<p>No schedule published yet.</p>'; return; }
+    el.innerHTML = list.map(s => `
+      <div class="card">
+        <strong>${s.program}</strong> <span class="badge">${s.category || ''}</span><br>
+        <small>⏱ ${s.time_slot || ''} | 📍 ${s.venue || ''}</small><br>
+        <button class="btn-danger" onclick="deleteItem('schedules', ${s.id})">Delete</button>
+      </div>
+    `).join('');
+  }
+
+  async function postSchedule() {
+    const program = document.getElementById('sch-p').value.trim();
+    const category = document.getElementById('sch-c').value.trim();
+    const time_slot = document.getElementById('sch-t').value.trim();
+    const venue = document.getElementById('sch-v').value.trim();
+
+    if (!program) return alert('Programme name is required');
+    const item = { program, category, time_slot, venue };
+    if (db) await db.from('schedules').insert([item]);
+
+    alert('Schedule item added!');
+    document.getElementById('sch-p').value = '';
+    document.getElementById('sch-c').value = '';
+    document.getElementById('sch-t').value = '';
+    document.getElementById('sch-v').value = '';
+    loadSchedule();
+  }
+
+  // RESULTS
   async function loadResults() {
     let list = [];
     if (db) {
       const { data } = await db.from('results').select('*').order('id', { ascending: false });
       if (data) list = data;
     }
-    const local = JSON.parse(localStorage.getItem('results') || '[]');
-    list = [...list, ...local];
-
     const el = document.getElementById('res-list');
     if (!list.length) { el.innerHTML = '<p>No results published yet.</p>'; return; }
     el.innerHTML = list.map(r => `
       <div class="card">
-        <strong style="color:var(--primary);">${r.program}</strong><br>
-        🥇 1st: <strong>${r.first_name}</strong> (Chest: ${r.first_chest || 'N/A'}) <span class="badge">${r.first_group || ''}</span>
+        <strong style="color:var(--primary); font-size:16px;">${r.program}</strong> 
+        <span class="badge">${r.category || ''}</span><br><br>
+        ${r.first_name ? `🥇 1st: <strong>${r.first_name}</strong> (${r.first_chest || ''}) <span class="badge">${r.first_group || ''}</span> <span class="grade">${r.first_grade || ''}</span><br>` : ''}
+        ${r.second_name ? `🥈 2nd: <strong>${r.second_name}</strong> (${r.second_chest || ''}) <span class="badge">${r.second_group || ''}</span> <span class="grade">${r.second_grade || ''}</span><br>` : ''}
+        ${r.third_name ? `🥉 3rd: <strong>${r.third_name}</strong> (${r.third_chest || ''}) <span class="badge">${r.third_group || ''}</span> <span class="grade">${r.third_grade || ''}</span><br>` : ''}
+        <button class="btn-danger" onclick="deleteItem('results', ${r.id})">Delete Result</button>
       </div>
     `).join('');
   }
 
   async function postResult() {
     const program = document.getElementById('res-p').value.trim();
-    const first_name = document.getElementById('res-1n').value.trim();
-    const first_chest = document.getElementById('res-1c').value.trim();
-    const first_group = document.getElementById('res-1g').value;
+    const category = document.getElementById('res-cat').value.trim();
 
-    if (!program || !first_name) return alert('Please fill in programme and winner name.');
+    const item = {
+      program, category,
+      first_name: document.getElementById('res-1n').value.trim(),
+      first_chest: document.getElementById('res-1c').value.trim(),
+      first_group: document.getElementById('res-1g').value,
+      first_grade: document.getElementById('res-1gr').value.trim(),
+      second_name: document.getElementById('res-2n').value.trim(),
+      second_chest: document.getElementById('res-2c').value.trim(),
+      second_group: document.getElementById('res-2g').value,
+      second_grade: document.getElementById('res-2gr').value.trim(),
+      third_name: document.getElementById('res-3n').value.trim(),
+      third_chest: document.getElementById('res-3c').value.trim(),
+      third_group: document.getElementById('res-3g').value,
+      third_grade: document.getElementById('res-3gr').value.trim()
+    };
 
-    const item = { program, first_name, first_chest, first_group };
+    if (!program || !item.first_name) return alert('Programme and 1st place details are required');
     if (db) await db.from('results').insert([item]);
 
-    const local = JSON.parse(localStorage.getItem('results') || '[]');
-    local.unshift(item);
-    localStorage.setItem('results', JSON.stringify(local));
-
     alert('Result published successfully!');
-    document.getElementById('res-p').value = '';
-    document.getElementById('res-1n').value = '';
-    document.getElementById('res-1c').value = '';
     loadResults();
+  }
+
+  // DELETE FUNCTIONALITY
+  async function deleteItem(table, id) {
+    if (!confirm('Are you sure you want to delete this entry?')) return;
+    if (db && id) {
+      await db.from(table).delete().eq('id', id);
+    }
+    alert('Item deleted');
+    showPage(table);
   }
 
   loadAnnouncements();
